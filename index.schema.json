@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp indicating when this index.json was last updated"
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^pkg:[a-zA-Z+.-]+(/[a-zA-Z+.-]+)(/[^@]+)$",
+            "description": "Package URL (PURL) of the package, excluding version and qualifiers"
+          },
+          "location": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_/.-]+\\.json$",
+            "description": "Relative path to the VEX file for this package within the tar.gz archive"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["openvex", "csaf"],
+            "default": "openvex",
+            "description": "Format of the VEX data"
+          }
+        },
+        "required": ["id", "location"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["updated_at", "packages"],
+  "additionalProperties": false
+}

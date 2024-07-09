@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the repository"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the repository"
+    },
+    "versions": {
+      "type": "object",
+      "patternProperties": {
+        "^v[0-9]+$": {
+          "type": "object",
+          "properties": {
+            "spec_version": {
+              "type": "string",
+              "pattern": "^v[0-9]+\\.[0-9]+$",
+              "description": "Version of the VEX Repository Specification implemented"
+            },
+            "locations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "pattern": "^https://"
+                  }
+                },
+                "required": ["url"]
+              },
+              "minItems": 1
+            },
+            "update_interval": {
+              "type": "string",
+              "description": "Recommended update check interval for this version's VEX data (Go duration format)",
+              "pattern": "^([0-9]+h)?([0-9]+m)?([0-9]+s)?$"
+            },
+            "repository_specific": {
+              "type": "object"
+            }
+          },
+          "required": ["spec_version", "locations", "update_interval"]
+        }
+      }
+    },
+    "latest_version": {
+      "type": "string",
+      "pattern": "^v[0-9]+$"
+    }
+  },
+  "required": ["name", "description", "versions", "latest_version"]
+}
