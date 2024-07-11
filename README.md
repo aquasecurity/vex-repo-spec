@@ -1,7 +1,7 @@
-# VEX Repository (VEXR) Specification v0.1
+# VEX Repository Specification v0.1
 
 <!-- TOC -->
-* [VEX Repository (VEXR) Specification v0.1](#vex-repository-vexr-specification-v01)
+* [VEX Repository Specification v0.1](#vex-repository-specification-v01)
   * [1. Versioning](#1-versioning)
   * [2. Repository Manifest](#2-repository-manifest)
     * [2.1 Overview](#21-overview)
@@ -12,21 +12,22 @@
       * [Main Fields](#main-fields)
       * [Versions Subfields](#versions-subfields)
       * [Locations Subfields](#locations-subfields)
-  * [3. Repository Structure](#3-repository-structure)
+  * [3. Repository Distribution](#3-repository-distribution)
     * [3.1 Overview](#31-overview)
     * [3.2 Archive Format](#32-archive-format)
-    * [3.2 File Structure](#32-file-structure)
-    * [3.3 index.json](#33-indexjson)
-    * [3.4 VEX Documents](#34-vex-documents)
-    * [3.5 Usage Notes](#35-usage-notes)
+  * [4. Repository Structure](#4-repository-structure)
+    * [4.1 File Structure](#41-file-structure)
+    * [4.2 index.json](#42-indexjson)
+    * [4.3 VEX Documents](#43-vex-documents)
+    * [4.4 Usage Notes](#44-usage-notes)
       * [Directory Structure](#directory-structure)
       * [VEX Document Content](#vex-document-content)
-    * [3.6 Updating the Repository](#36-updating-the-repository)
-  * [4. Client Implementation Guidelines](#4-client-implementation-guidelines)
-    * [4.1 Multiple Repository Support](#41-multiple-repository-support)
+    * [4.5 Updating the Repository](#45-updating-the-repository)
+  * [5. Client Implementation Guidelines](#5-client-implementation-guidelines)
+    * [5.1 Multiple Repository Support](#51-multiple-repository-support)
       * [Repository Prioritization](#repository-prioritization)
-    * [4.2 Checking for Updates](#42-checking-for-updates)
-    * [4.3 Efficiency Strategies](#43-efficiency-strategies)
+    * [5.2 Checking for Updates](#52-checking-for-updates)
+    * [5.3 Efficiency Strategies](#53-efficiency-strategies)
 <!-- TOC -->
 
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
@@ -121,7 +122,7 @@ The schema for the manifest file is defined [here](./vex-repository.schema.json)
 |-------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | url   |    ✓     | A URL for the VEX data location, starting with "https://". The content adheres to the repository structure specifications in Section 3. The URL may include a subdirectory specification by appending '//' followed by the subdirectory path. |
 
-## 3. Repository Structure
+## 3. Repository Distribution
 
 ### 3.1 Overview
 
@@ -139,9 +140,11 @@ The archive file MUST be in one of the following formats:
 - `bz2`
 - `xz`
 
-### 3.2 File Structure
+## 4. Repository Structure
 
-The archive file MUST have the following structure:
+### 4.1 File Structure
+
+The repository MUST have the following structure:
 
 ```
 vex-repository.<archive_extension>
@@ -159,7 +162,8 @@ vex-repository.<archive_extension>
 
 Where `<archive_extension>` is one of supported formats.
 
-The `[optional_subdirectory/]` is included when the URL in the locations field ends with `//` followed by a subdirectory path. This allows for flexibility in repository structure, particularly when using existing repository layouts such as those in GitHub repositories.
+The `[optional_subdirectory/]` is included when the URL in the locations field ends with `//` followed by a subdirectory path.
+This allows for flexibility in repository structure, particularly when using existing repository layouts such as those in GitHub repositories.
 
 For example, if the URL is `https://github.com/org/repo/archive/refs/heads/main.tar.gz//repo-main`, the file structure would be:
 
@@ -173,9 +177,11 @@ main.tar.gz
 
 In this case, `repo-main/` is the root directory for the VEX repository within the tar.gz file.
 
-### 3.3 index.json
+### 4.2 index.json
 
-The index.json file serves as a manifest for the contents of the archive file. It must be placed in the root directory of the archive or in the specified subdirectory if one is defined in the URL. The file must have the following structure:
+The index.json file serves as a manifest for the contents of the archive file.
+It MUST be placed in the root directory of the archive or in the specified subdirectory if one is defined in the URL.
+The file MUST have the following structure:
 
 ```json
 {
@@ -206,13 +212,13 @@ Field descriptions:
 
 The schema for the index file is defined [here](./index.schema.json).
 
-### 3.4 VEX Documents
+### 4.3 VEX Documents
 
 Each package's VEX information MUST be stored in a separate JSON file, following the path structure defined in the index.json file. The content of these files MUST adhere to the VEX format specification (OpenVEX or CSAF VEX) as specified in the `format` field. A single VEX document MAY include information for different versions and qualifiers of the same package.
 
 For OpenVEX document examples, please refer to the [OpenVEX specification](https://github.com/openvex/spec/blob/main/OPENVEX-SPEC.md#example).
 
-### 3.5 Usage Notes
+### 4.4 Usage Notes
 
 #### Directory Structure
 - It is RECOMMENDED to create directory structures for packages based on their PURL, excluding version and qualifiers. For example, a package with PURL "pkg:deb/debian/curl" could be stored in "pkg/deb/debian/curl/vex.json".
@@ -224,7 +230,7 @@ For OpenVEX document examples, please refer to the [OpenVEX specification](https
 - A single VEX document MAY include information for different versions and qualifiers of the same package.
 - When querying for a specific version or qualifier, clients MUST parse the entire VEX document to find the relevant information.
 
-### 3.6 Updating the Repository
+### 4.5 Updating the Repository
 
 When updating the VEX repository:
 
@@ -234,9 +240,9 @@ When updating the VEX repository:
 4. Upload the new archive to the location specified in the manifest file (vex-repository.json).
 5. Update the relevant `locations` URL in the manifest file (vex-repository.json) if necessary.
 
-## 4. Client Implementation Guidelines
+## 5. Client Implementation Guidelines
 
-### 4.1 Multiple Repository Support
+### 5.1 Multiple Repository Support
 
 Clients SHOULD be designed to support multiple VEX repositories.
 
@@ -245,7 +251,7 @@ Clients SHOULD be designed to support multiple VEX repositories.
 - When multiple repositories provide VEX data for the same PURL, clients SHOULD select the data based on the repository priority.
 - The prioritization method SHOULD be configurable to allow users to adjust based on their specific needs and trust in different data sources.
 
-### 4.2 Checking for Updates
+### 5.2 Checking for Updates
 
 Clients SHOULD use the following process to check for updates:
 
@@ -260,7 +266,7 @@ Clients SHOULD use the following process to check for updates:
     - If the current time is earlier than the calculated time, continue using the cached repository content.
 
 
-### 4.3 Efficiency Strategies
+### 5.3 Efficiency Strategies
 
 For efficient operation, clients MAY implement the following strategies:
 
