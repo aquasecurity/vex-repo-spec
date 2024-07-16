@@ -54,7 +54,7 @@ This file MUST contain information necessary for retrieving and updating VEX dat
 
 ### 2.3 Schema
 
-The schema for the manifest file is defined [here](./vex-repository.schema.json).
+The JSON schema for the manifest file is defined [here](./vex-repository.schema.json).
 
 ### 2.4 Example
 
@@ -118,9 +118,9 @@ The schema for the manifest file is defined [here](./vex-repository.schema.json)
 
 #### Locations Subfields
 
-| Field | Required | Description and Usage Notes                                                                                                                                                                                                                   |
-|-------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| url   |    ✓     | A URL for the VEX data location, starting with "https://". The content adheres to the repository structure specifications in Section 3. The URL may include a subdirectory specification by appending '//' followed by the subdirectory path. |
+| Field | Required | Description and Usage Notes                                                                                                                                                                                                                         |
+|-------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| url   |    ✓     | A URL for the VEX data location, starting with "https://". The content adheres to the repository structure specifications in Section 3 and 4. The URL may include a subdirectory specification by appending '//' followed by the subdirectory path. |
 
 ## 3. Repository Distribution
 
@@ -251,7 +251,19 @@ Clients SHOULD be designed to support multiple VEX repositories.
 - When multiple repositories provide VEX data for the same PURL, clients SHOULD select the data based on the repository priority.
 - The prioritization method SHOULD be configurable to allow users to adjust based on their specific needs and trust in different data sources.
 
-### 5.2 Checking for Updates
+### 5.2 Handling Multiple Locations
+
+When dealing with multiple locations in the `locations` array:
+
+1. Priority Order: Clients MUST prioritize locations based on their order in the array. 
+   The location listed first should be attempted before moving to subsequent locations.
+2. Schema Support:
+    - Currently, only the "https" scheme is supported in the specification.
+    - Future versions of this specification may introduce additional schemes.
+    - Clients SHOULD check the URL scheme of each location and only use those with supported schemes.
+3. Fallback Mechanism: If a client encounters an error with one location, it SHOULD attempt to use the next available location in the array.
+
+### 5.3 Checking for Updates
 
 Clients SHOULD use the following process to check for updates:
 
@@ -266,7 +278,7 @@ Clients SHOULD use the following process to check for updates:
     - If the current time is earlier than the calculated time, continue using the cached repository content.
 
 
-### 5.3 Efficiency Strategies
+### 5.4 Efficiency Strategies
 
 For efficient operation, clients MAY implement the following strategies:
 
