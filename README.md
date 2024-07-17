@@ -12,17 +12,17 @@
       * [Main Fields](#main-fields)
       * [Versions Subfields](#versions-subfields)
       * [Locations Subfields](#locations-subfields)
-  * [3. Repository Distribution](#3-repository-distribution)
-    * [3.1 Overview](#31-overview)
-    * [3.2 Archive Format](#32-archive-format)
-  * [4. Repository Structure](#4-repository-structure)
-    * [4.1 File Structure](#41-file-structure)
-    * [4.2 index.json](#42-indexjson)
-    * [4.3 VEX Documents](#43-vex-documents)
-    * [4.4 Usage Notes](#44-usage-notes)
+  * [3. Repository Structure](#3-repository-structure)
+    * [3.1 File Structure](#31-file-structure)
+    * [3.2 index.json](#32-indexjson)
+    * [3.3 VEX Documents](#33-vex-documents)
+    * [3.4 Usage Notes](#34-usage-notes)
       * [Directory Structure](#directory-structure)
       * [VEX Document Content](#vex-document-content)
-    * [4.5 Updating the Repository](#45-updating-the-repository)
+    * [3.5 Updating the Repository](#35-updating-the-repository)
+  * [4. Repository Distribution](#4-repository-distribution)
+    * [4.1 Overview](#41-overview)
+    * [4.2 Archive Format](#42-archive-format)
   * [5. Client Implementation Guidelines](#5-client-implementation-guidelines)
     * [5.1 Version Selection](#51-version-selection)
     * [5.2 Location Selection](#52-location-selection)
@@ -133,31 +133,13 @@ The JSON schema for the manifest file is defined [here](./vex-repository.schema.
 
 #### Locations Subfields
 
-| Field | Required | Description and Usage Notes                                                                                                                                                                                                                         |
-|-------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| url   |    ✓     | A URL for the VEX data location, starting with "https://". The content adheres to the repository structure specifications in Section 3 and 4. The URL may include a subdirectory specification by appending '//' followed by the subdirectory path. |
+| Field | Required | Description and Usage Notes                                                                                                                                                                                                                                                                                  |
+|-------|:--------:|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| url   |    ✓     | A URL for the VEX data location, starting with "https://". The content adheres to the repository structure specifications in [section 3](#3-repository-structure) and [4](#4-repository-distribution). The URL may include a subdirectory specification by appending '//' followed by the subdirectory path. |
 
-## 3. Repository Distribution
+## 3. Repository Structure
 
-### 3.1 Overview
-
-The VEX Repository MUST be distributed as an archive file containing the VEX data and associated metadata.
-This archive MUST be referenced by the locations field in the vex-repository.json file and is the primary means of distributing VEX information.
-
-### 3.2 Archive Format
-The archive file MUST be in one of the following formats:
-
-- `tar.gz` and `tgz`
-- `tar.bz2` and `tbz2`
-- `tar.xz` and `txz`
-- `zip`
-- `gz`
-- `bz2`
-- `xz`
-
-## 4. Repository Structure
-
-### 4.1 File Structure
+### 3.1 File Structure
 
 The repository MUST have the following structure:
 
@@ -192,7 +174,7 @@ main.tar.gz
 
 In this case, `repo-main/` is the root directory for the VEX repository within the tar.gz file.
 
-### 4.2 index.json
+### 3.2 index.json
 
 The index.json file serves as a manifest for the contents of the archive file.
 It MUST be placed in the root directory of the archive or in the specified subdirectory if one is defined in the URL.
@@ -227,13 +209,13 @@ Field descriptions:
 
 The schema for the index file is defined [here](./index.schema.json).
 
-### 4.3 VEX Documents
+### 3.3 VEX Documents
 
 Each package's VEX information MUST be stored in a separate JSON file, following the path structure defined in the index.json file. The content of these files MUST adhere to the VEX format specification (OpenVEX or CSAF VEX) as specified in the `format` field. A single VEX document MAY include information for different versions and qualifiers of the same package.
 
 For OpenVEX document examples, please refer to the [OpenVEX specification](https://github.com/openvex/spec/blob/main/OPENVEX-SPEC.md#example).
 
-### 4.4 Usage Notes
+### 3.4 Usage Notes
 
 #### Directory Structure
 - It is RECOMMENDED to create directory structures for packages based on their PURL, excluding version and qualifiers. For example, a package with PURL "pkg:deb/debian/curl" could be stored in "pkg/deb/debian/curl/vex.json".
@@ -245,7 +227,7 @@ For OpenVEX document examples, please refer to the [OpenVEX specification](https
 - A single VEX document MAY include information for different versions and qualifiers of the same package.
 - When querying for a specific version or qualifier, clients MUST parse the entire VEX document to find the relevant information.
 
-### 4.5 Updating the Repository
+### 3.5 Updating the Repository
 
 When updating the VEX repository:
 
@@ -254,6 +236,26 @@ When updating the VEX repository:
 3. Create a new archive with the updated contents.
 4. Upload the new archive to the location specified in the manifest file (vex-repository.json).
 5. Update the relevant `locations` URL in the manifest file (vex-repository.json) if necessary.
+
+## 4. Repository Distribution
+
+### 4.1 Overview
+
+The VEX Repository MUST be distributed as an archive file containing the VEX data and associated metadata.
+This archive MUST be referenced by the locations field in the vex-repository.json file and is the primary means of distributing VEX information.
+
+### 4.2 Archive Format
+
+The archive file MUST be in one of the following formats:
+
+- `tar.gz` and `tgz`
+- `tar.bz2` and `tbz2`
+- `tar.xz` and `txz`
+- `zip`
+- `gz`
+- `bz2`
+- `xz`
+
 
 ## 5. Client Implementation Guidelines
 
