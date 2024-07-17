@@ -157,7 +157,7 @@ vex-repository.<archive_extension>
     └── ...
 ```
 
-Where `<archive_extension>` is one of supported formats.
+Where `<archive_extension>` is one of [supported archive formats](#42-archive-format).
 
 The `[optional_subdirectory/]` is included when the URL in the locations field ends with `//` followed by a subdirectory path.
 This allows for flexibility in repository structure, particularly when using existing repository layouts such as those in GitHub repositories.
@@ -205,7 +205,7 @@ Field descriptions:
 | packages            |    ✓     | Array of objects, each representing a package in the repository.                                                                                            |
 | packages[].id       |    ✓     | Identifier of the package. Currently, only Package URL (PURL) is accepted. Version and qualifiers MUST be omitted as they are included in the VEX document. |
 | packages[].location |    ✓     | Relative path to the VEX file for this package within the archive. Clients MUST use this field to locate specific package VEX files.                        |
-| packages[].format   |    ✗     | Format of the VEX data. Either "openvex" or "csaf". If omitted, "openvex" is assumed.                                                                       |
+| packages[].format   |    -     | Format of the VEX data. Either "openvex" or "csaf". If omitted, "openvex" is assumed.                                                                       |
 
 The schema for the index file is defined [here](./index.schema.json).
 
@@ -219,6 +219,7 @@ For OpenVEX document examples, please refer to the [OpenVEX specification](https
 
 #### Directory Structure
 - It is RECOMMENDED to create directory structures for packages based on their PURL, excluding version and qualifiers. For example, a package with PURL "pkg:deb/debian/curl" could be stored in "pkg/deb/debian/curl/vex.json".
+- For OCI packages, the `repository_url` qualifier of the PURL MAY be used to create the directory structure. For example, a package with PURL "pkg:oci/debian@sha256:3e45770a143ee5afd1ebde5a6aea6e32a71d2bt5602f5dac8025db0d9cc19f10?repository_url=docker.io/library/debian" could be stored in "pkg/oci/docker.io/library/debian/vex.json".
 - The actual location of VEX files MAY be freely defined in the index.json file's `location` field, regardless of the recommended structure.
 - All file paths within the archive MUST use forward slashes (/) as separators, regardless of the operating system.
 - Package names in the directory structure MUST be URL-encoded if they contain special characters.
