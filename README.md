@@ -24,10 +24,12 @@
       * [VEX Document Content](#vex-document-content)
     * [4.5 Updating the Repository](#45-updating-the-repository)
   * [5. Client Implementation Guidelines](#5-client-implementation-guidelines)
-    * [5.1 Multiple Repository Support](#51-multiple-repository-support)
+    * [5.1 Version Selection](#51-version-selection)
+    * [5.2 Location Selection](#52-location-selection)
+    * [5.3 Multiple Repository Support](#53-multiple-repository-support)
       * [Repository Prioritization](#repository-prioritization)
-    * [5.2 Checking for Updates](#52-checking-for-updates)
-    * [5.3 Efficiency Strategies](#53-efficiency-strategies)
+    * [5.4 Checking for Updates](#54-checking-for-updates)
+    * [5.5 Efficiency Strategies](#55-efficiency-strategies)
 <!-- TOC -->
 
 The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
@@ -40,6 +42,21 @@ The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SH
     - Y (minor version) MUST be updated for backwards-compatible changes.
 - For v0.Y versions, breaking changes MAY occur with minor version updates.
 
+When comparing versions:
+
+- Versions MUST be compared numerically, not lexicographically.
+- Major versions MUST be compared first:
+    - If major versions differ, the version with the higher major version is considered newer.
+    - If major versions are equal, proceed to compare minor versions.
+- Minor versions MUST be compared only when major versions are equal:
+    - The version with the higher minor version is considered newer.
+
+Example comparisons:
+
+- 1.0 < 2.0
+- 1.1 < 1.2
+- 1.10 > 1.2
+ 
 ## 2. Repository Manifest
 
 ### 2.1 Overview
@@ -62,9 +79,9 @@ The JSON schema for the manifest file is defined [here](./vex-repository.schema.
 {
   "name": "Example Org VEX Repository",
   "description": "VEX repository for Example Organization",
-  "versions": {
-    "v0": {
-      "spec_version": "v0.1",
+  "versions": [
+    {
+      "spec_version": "0.1",
       "locations": [
         {
           "url": "https://example.com/vex-hub/v0/vex-data-v0.tar.gz"
@@ -79,8 +96,8 @@ The JSON schema for the manifest file is defined [here](./vex-repository.schema.
         }
       }
     },
-    "v1": {
-      "spec_version": "v1.0",
+    {
+      "spec_version": "1.0",
       "locations": [
         {
           "url": "https://example.com/vex-hub/v1/vex-data-v1.tar.gz//subdirectory"
@@ -91,8 +108,7 @@ The JSON schema for the manifest file is defined [here](./vex-repository.schema.
       ],
       "update_interval": "1h"
     }
-  },
-  "latest_version": "v1"
+  ]
 }
 ```
 
@@ -100,21 +116,20 @@ The JSON schema for the manifest file is defined [here](./vex-repository.schema.
 
 #### Main Fields
 
-| Field          | Required | Description and Usage Notes                                                                                                                                                                                                                                     |
-|----------------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| name           |    ✓     | The name of the repository.                                                                                                                                                                                                                                     |
-| description    |    ✓     | A brief description of the repository.                                                                                                                                                                                                                          |
-| versions       |    ✓     | A map containing details of available versions. Keys are strings starting with "v" followed by a number (e.g., "v0", "v1"). Each version implements a VEX Repository Specification version matching its major version number. See separate table for subfields. |
-| latest_version |    ✓     | The identifier of the latest version.                                                                                                                                                                                                                           |
+| Field       | Required | Description and Usage Notes                                                                                                                                                                                                                                |
+|-------------|:--------:|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| name        |    ✓     | The name of the repository.                                                                                                                                                                                                                                |
+| description |    ✓     | A brief description of the repository.                                                                                                                                                                                                                     |
+| versions    |    ✓     | An array containing details of available versions. Each object in the array represents a version implementing a VEX Repository Specification version. Versions MUST be sorted in ascending order, from oldest to newest. See separate table for subfields. |
 
 #### Versions Subfields
 
-| Field               | Required | Description and Usage Notes                                                                                                     |
-|---------------------|:--------:|---------------------------------------------------------------------------------------------------------------------------------|
-| spec_version        |    ✓     | The version of the VEX Repository Specification implemented (e.g., "v0.1"). Format MUST be "vX.Y" defined in Section 1.         |
-| locations           |    ✓     | An array of objects describing VEX data locations. MUST contain at least one location object. See separate table for subfields. |
-| update_interval     |    ✓     | The recommended update check interval for this version's VEX data. Uses Go duration format (e.g., "1h", "30m", "24h").          |
-| repository_specific |    ✗     | Additional repository-specific information.                                                                                     |
+| Field               | Required | Description and Usage Notes                                                                                                               |
+|---------------------|:--------:|-------------------------------------------------------------------------------------------------------------------------------------------|
+| spec_version        |    ✓     | The version of the VEX Repository Specification implemented (e.g., "0.1"). Format MUST be "X.Y" as defined in [section 1](#1-versioning). |
+| locations           |    ✓     | An array of objects describing VEX data locations. MUST contain at least one location object. See separate table for subfields.           |
+| update_interval     |    ✓     | The recommended update check interval for this version's VEX data. Uses Go duration format (e.g., "1h", "30m", "24h").                    |
+| repository_specific |    -     | Additional repository-specific information.                                                                                               |
 
 #### Locations Subfields
 
@@ -242,7 +257,30 @@ When updating the VEX repository:
 
 ## 5. Client Implementation Guidelines
 
-### 5.1 Multiple Repository Support
+### 5.1 Version Selection
+
+When selecting a version from the versions array:
+
+- Clients MUST choose a version they support based on the `spec_version` field.
+- Clients MUST compare versions according to the rules defined in [section 1](#1-versioning).
+- The versions array is guaranteed to be sorted from oldest to newest. Clients can use this order to efficiently select an appropriate version.
+- Clients MAY select the newest version they support within the same major version, as backwards compatibility is maintained within major versions.
+- If multiple major versions are supported, clients SHOULD prefer the newest major version they support, unless otherwise configured.
+- If no supported version is available, clients MUST NOT use the repository and SHOULD notify the user.
+
+### 5.2 Location Selection
+
+When dealing with multiple locations in the `locations` array:
+
+1. Priority Order: Clients MUST prioritize locations based on their order in the array.
+   The location listed first should be attempted before moving to subsequent locations.
+2. Schema Support:
+    - Currently, only the "https" scheme is supported in the specification.
+    - Future versions of this specification may introduce additional schemes.
+    - Clients SHOULD check the URL scheme of each location and only use those with supported schemes.
+3. Fallback Mechanism: If a client encounters an error with one location, it SHOULD attempt to use the next available location in the array.
+
+### 5.3 Multiple Repository Support
 
 Clients SHOULD be designed to support multiple VEX repositories.
 
@@ -251,19 +289,7 @@ Clients SHOULD be designed to support multiple VEX repositories.
 - When multiple repositories provide VEX data for the same PURL, clients SHOULD select the data based on the repository priority.
 - The prioritization method SHOULD be configurable to allow users to adjust based on their specific needs and trust in different data sources.
 
-### 5.2 Handling Multiple Locations
-
-When dealing with multiple locations in the `locations` array:
-
-1. Priority Order: Clients MUST prioritize locations based on their order in the array. 
-   The location listed first should be attempted before moving to subsequent locations.
-2. Schema Support:
-    - Currently, only the "https" scheme is supported in the specification.
-    - Future versions of this specification may introduce additional schemes.
-    - Clients SHOULD check the URL scheme of each location and only use those with supported schemes.
-3. Fallback Mechanism: If a client encounters an error with one location, it SHOULD attempt to use the next available location in the array.
-
-### 5.3 Checking for Updates
+### 5.4 Checking for Updates
 
 Clients SHOULD use the following process to check for updates:
 
@@ -278,7 +304,7 @@ Clients SHOULD use the following process to check for updates:
     - If the current time is earlier than the calculated time, continue using the cached repository content.
 
 
-### 5.4 Efficiency Strategies
+### 5.5 Efficiency Strategies
 
 For efficient operation, clients MAY implement the following strategies:
 

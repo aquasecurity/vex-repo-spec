@@ -1,57 +1,57 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
+  "description": "Schema for the VEX Repository manifest file",
   "properties": {
     "name": {
       "type": "string",
-      "description": "Name of the repository"
+      "description": "The name of the VEX repository"
     },
     "description": {
       "type": "string",
-      "description": "Description of the repository"
+      "description": "A brief description of the VEX repository"
     },
     "versions": {
-      "type": "object",
-      "patternProperties": {
-        "^v[0-9]+$": {
-          "type": "object",
-          "properties": {
-            "spec_version": {
-              "type": "string",
-              "pattern": "^v[0-9]+\\.[0-9]+$",
-              "description": "Version of the VEX Repository Specification implemented"
-            },
-            "locations": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "pattern": "^https://"
-                  }
-                },
-                "required": ["url"]
-              },
-              "minItems": 1
-            },
-            "update_interval": {
-              "type": "string",
-              "description": "Recommended update check interval for this version's VEX data (Go duration format)",
-              "pattern": "^([0-9]+h)?([0-9]+m)?([0-9]+s)?$"
-            },
-            "repository_specific": {
-              "type": "object"
-            }
+      "type": "array",
+      "description": "An array of available VEX specification versions, sorted from oldest to newest",
+      "items": {
+        "type": "object",
+        "properties": {
+          "spec_version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+$",
+            "description": "The version of the VEX Repository Specification implemented (e.g., '0.1', '1.0')"
           },
-          "required": ["spec_version", "locations", "update_interval"]
-        }
-      }
-    },
-    "latest_version": {
-      "type": "string",
-      "pattern": "^v[0-9]+$"
+          "locations": {
+            "type": "array",
+            "description": "An array of objects describing VEX data locations",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "The URL of the VEX data location"
+                }
+              },
+              "required": ["url"]
+            },
+            "minItems": 1
+          },
+          "update_interval": {
+            "type": "string",
+            "pattern": "^[0-9]+([hm])$",
+            "description": "The recommended update check interval for this version's VEX data (e.g., '1h', '30m')"
+          },
+          "repository_specific": {
+            "type": "object",
+            "description": "Additional repository-specific information"
+          }
+        },
+        "required": ["spec_version", "locations", "update_interval"]
+      },
+      "minItems": 1
     }
   },
-  "required": ["name", "description", "versions", "latest_version"]
+  "required": ["name", "description", "versions"]
 }
