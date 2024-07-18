@@ -19,8 +19,17 @@
           },
           "location": {
             "type": "string",
-            "pattern": "^[a-zA-Z0-9_/.-]+\\.json$",
-            "description": "Relative path to the VEX file for this package within the tar.gz archive"
+            "oneOf": [
+              {
+                "pattern": "^[a-zA-Z0-9_/.-]+\\.json$",
+                "description": "Relative path to the VEX file for this package within the archive"
+              },
+              {
+                "pattern": "^https://.*\\.json$",
+                "description": "HTTPS URL to the VEX file for this package"
+              }
+            ],
+            "description": "Location of the VEX file for this package"
           },
           "format": {
             "type": "string",

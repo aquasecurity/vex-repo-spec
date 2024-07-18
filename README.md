@@ -141,7 +141,7 @@ The JSON schema for the manifest file is defined [here](./vex-repository.schema.
 
 ### 3.1 File Structure
 
-The repository MUST have the following structure:
+The repository SHOULD have the following structure:
 
 ```
 vex-repository.<archive_extension>
@@ -174,6 +174,10 @@ main.tar.gz
 
 In this case, `repo-main/` is the root directory for the VEX repository within the tar.gz file.
 
+The above file structure is applicable only for VEX documents stored within the archive.
+For VEX documents hosted externally and specified via HTTPS URLs in the index.json file, this structure does not apply.
+External VEX documents can be stored in any location accessible via the provided HTTPS URL.
+
 ### 3.2 index.json
 
 The index.json file serves as a manifest for the contents of the archive file.
@@ -190,7 +194,7 @@ The file MUST have the following structure:
     },
     {
       "id": "pkg:npm/lodash",
-      "location": "pkg/npm/lodash/vex.json",
+      "location": "https://example.com/vex/npm/lodash/vex.json",
       "format": "csaf"
     }
   ]
@@ -204,18 +208,32 @@ Field descriptions:
 | updated_at          |    ✓     | Timestamp indicating when this index.json was last updated.                                                                                                 |
 | packages            |    ✓     | Array of objects, each representing a package in the repository.                                                                                            |
 | packages[].id       |    ✓     | Identifier of the package. Currently, only Package URL (PURL) is accepted. Version and qualifiers MUST be omitted as they are included in the VEX document. |
-| packages[].location |    ✓     | Relative path to the VEX file for this package within the archive. Clients MUST use this field to locate specific package VEX files.                        |
+| packages[].location |    ✓     | Location of the VEX file for this package. Can be either a relative path within the archive or an HTTPS URL.                                                |
 | packages[].format   |    -     | Format of the VEX data. Either "openvex" or "csaf". If omitted, "openvex" is assumed.                                                                       |
 
 The schema for the index file is defined [here](./index.schema.json).
 
 ### 3.3 VEX Documents
 
-Each package's VEX information MUST be stored in a separate JSON file, following the path structure defined in the index.json file. The content of these files MUST adhere to the VEX format specification (OpenVEX or CSAF VEX) as specified in the `format` field. A single VEX document MAY include information for different versions and qualifiers of the same package.
+Each package's VEX information MUST be stored in a separate JSON file, either within the archive or at an HTTPS URL as specified in the index.json file.
+The content of these files MUST adhere to the VEX format specification (OpenVEX or CSAF VEX) as specified in the `format` field. A single VEX document MAY include information for different versions and qualifiers of the same package.
 
 For OpenVEX document examples, please refer to the [OpenVEX specification](https://github.com/openvex/spec/blob/main/OPENVEX-SPEC.md#example).
 
 ### 3.4 Usage Notes
+
+#### VEX Document Location
+
+- VEX documents can be stored either within the archive or at external HTTPS URLs.
+- When using HTTPS URLs, they MUST be absolute URLs starting with "https://".
+- Clients MUST support local locations (relative paths) for VEX documents.
+- Support for remote locations (HTTPS URLs) is OPTIONAL for clients. However, if a client encounters an HTTPS URL and does not support it, it MUST issue a warning.
+- Repository maintainers are RECOMMENDED to use relative paths for VEX documents whenever possible, as this approach is more efficient and does not rely on client-specific caching mechanisms.
+- HTTPS URLs for VEX documents SHOULD only be used in the following cases:
+    - When the number of VEX documents is extremely large, making bulk download inefficient.
+    - When there's a need to host VEX documents in a location separate from where the index is hosted.
+- Caching of externally hosted VEX documents is not defined in this specification and is dependent on client implementation. Clients MAY implement caching mechanisms for efficiency, but this is not required.
+- Repository maintainers MAY choose to use a mix of local and remote locations for different packages within the same repository, but should be aware that not all clients may support remote locations.
 
 #### Directory Structure
 - It is RECOMMENDED to create directory structures for packages based on their PURL, excluding version and qualifiers. For example, a package with PURL "pkg:deb/debian/curl" could be stored in "pkg/deb/debian/curl/vex.json".
@@ -233,10 +251,11 @@ For OpenVEX document examples, please refer to the [OpenVEX specification](https
 When updating the VEX repository:
 
 1. Generate new or updated vex.json files for affected packages.
-2. Update the index.json file to reflect any changes, including updating the `updated_at` timestamp.
-3. Create a new archive with the updated contents.
-4. Upload the new archive to the location specified in the manifest file (vex-repository.json).
-5. Update the relevant `locations` URL in the manifest file (vex-repository.json) if necessary.
+2. If using external HTTPS URLs for VEX documents, update those files at their respective locations.
+3. Update the index.json file to reflect any changes, including updating the `updated_at` timestamp.
+4. Create a new archive with the updated contents (excluding externally hosted VEX documents).
+5. Upload the new archive to the location specified in the manifest file (vex-repository.json).
+6. Update the relevant `locations` URL in the manifest file (vex-repository.json) if necessary.
 
 ## 4. Repository Distribution
 
@@ -314,3 +333,4 @@ For efficient operation, clients MAY implement the following strategies:
 1. Use HTTP ETags or Last-Modified headers when making requests to check for updates. This can help minimize unnecessary downloads when the content hasn't changed.
 2. Implement a minimum interval between update checks (e.g., 1 hour) to avoid excessive network requests, especially in cases where the `update_interval` is very short.
 3. Allow for manual override of update checks, enabling users to force an immediate check regardless of the calculated next update time.
+4. Implement caching mechanisms to store recently accessed VEX documents locally when dealing with externally hosted VEX documents (HTTPS URLs).
