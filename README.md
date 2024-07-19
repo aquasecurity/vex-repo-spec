@@ -267,8 +267,11 @@ When selecting a version from the versions array:
 - Clients MUST choose a version they support based on the `spec_version` field.
 - Clients MUST compare versions according to the rules defined in [section 1](#1-versioning).
 - The versions array is guaranteed to be sorted from oldest to newest. Clients can use this order to efficiently select an appropriate version.
-- Clients MAY select the newest version they support within the same major version, as backwards compatibility is maintained within major versions.
-- If multiple major versions are supported, clients SHOULD prefer the newest major version they support, unless otherwise configured.
+- For versions v1.0 and later:
+    - Clients MAY select the newest version they support within the same major version, as backwards compatibility is maintained within major versions.
+- For versions v0.Y (where Y is any minor version):
+    - Clients SHOULD select an exact version match.
+    - This is because v0.Y versions MAY include breaking changes between minor versions.
 - If no supported version is available, clients MUST NOT use the repository and SHOULD notify the user.
 
 ### 5.2 Location Selection
