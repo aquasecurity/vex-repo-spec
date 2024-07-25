@@ -14,13 +14,13 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^pkg:[a-zA-Z+.-]+(/[a-zA-Z+.-]+)(/[^@]+)$",
-            "description": "Package URL (PURL) of the package, excluding version and qualifiers"
+            "pattern": "^pkg:[a-zA-Z+.-]+(/[a-zA-Z+.-]+)(/[^@]+)(\\?repository_url=[a-zA-Z0-9_/.-:]+)?$",
+            "description": "Package URL (PURL) of the package, excluding version, qualifiers, and subpath. For OCI type, repository_url qualifier must be included."
           },
           "location": {
             "type": "string",
             "pattern": "^[a-zA-Z0-9_/.-]+\\.json$",
-            "description": "Relative path to the VEX file for this package within the tar.gz archive"
+            "description": "Relative path to the VEX file for this package within the archive"
           },
           "format": {
             "type": "string",
